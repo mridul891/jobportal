@@ -6,7 +6,8 @@ app.get('/', (req, res) => {
     res.json({ message: "hello" })
 })
 
-app.use('/v1/', mainRouter)
+app.use('/v1', mainRouter)
+
 app.listen(PORT, () => {
     console.log(`localhost started at ${PORT}`)
 })
