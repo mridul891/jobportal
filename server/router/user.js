@@ -8,15 +8,15 @@ const jwt = require('jsonwebtoken')
 const JWTSECRET = "HelloMridul"
 // Sign In Controller
 
-const signinSchema = zod.object({
+const signupSchema = zod.object({
     email: zod.string().email(),
     password: zod.string(),
     name: zod.string(),
     Department: zod.string()
 })
-router.post('/signin', async (req, res) => {
+router.post('/signup', async (req, res) => {
 
-    const { success } = await signinSchema.safeParse(req.body)
+    const { success } = signupSchema.safeParse(req.body)
     if (!success) {
         return res.status(401).json({ message: "Incorrect input" })
     }
@@ -50,4 +50,36 @@ router.post('/signin', async (req, res) => {
 
 })
 
+
+// sign in schema 
+const signinSchema = zod.object({
+    email: zod.string().email(),
+    password: zod.string(),
+})
+
+router.post('/signin', async (req, res) => {
+
+    const { success } = signinSchema.safeParse(req.body)
+    if (!success) {
+        return res.status(401).json({ message: "Incorrect input" })
+    }
+
+    const user = await prisma.user.findFirst({
+        where: {
+            email: req.body.email
+        }, select: {
+            id: true,
+            password: true
+        }
+    })
+    console.log(user)
+
+    if (user) {
+        await bcrypt.compare(user.password, req.body.password)
+        const token = await jwt.sign({ id: user.id }, JWTSECRET)
+        return res.status(201).json({ token: token })
+    }
+
+    res.status(401).json({ message: "User Dose not existed" })
+})
 module.exports = router
